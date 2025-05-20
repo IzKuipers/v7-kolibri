@@ -1,0 +1,16 @@
+/* Scope CSS of your app by prefixing selectors with the app ID: */
+#IzK_KolibriOS > div.body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #000;
+}
+#IzK_KolibriOS > div.body button.lucide.icon-x {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+  background-color: transparent;
+}

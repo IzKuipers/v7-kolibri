@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "name": "KolibriOS",
+    "description": "KolibriOS in ArcOS",
+    "author": "izk",
+    "version": "1.0.0",
+    "installLocation": "U:/Applications/KolibriOS",
+    "appId": "IzK_KolibriOS"
+  },
+  "outFile": "IzK_KolibriOS.arc",
+  "payloadDir": "src",
+  "devPort": 3128
+}
