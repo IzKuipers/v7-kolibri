@@ -7,6 +7,8 @@
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "typeRoots": ["./"], // Look in the root directory for type declarations
-    "types": ["./arcos.d.ts"] // Explicitly include the types
-  }
+    "types": ["./arcos.d.ts"], // Explicitly include the types
+    "outDir": "./dist"
+  },
+  "include": ["./src"]
 }
