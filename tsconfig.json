@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": ["./"], // Look in the root directory for type declarations
+    "types": ["./arcos.d.ts"] // Explicitly include the types
+  }
+}

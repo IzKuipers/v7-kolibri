@@ -17,7 +17,7 @@ class proc extends ThirdPartyAppProcess {
 
     close.addEventListener("click", () => {
       this.closeWindow();
-    })
+    });
 
     canvas.addEventListener("click", async () => {
       await canvas.requestPointerLock();
@@ -49,7 +49,7 @@ class proc extends ThirdPartyAppProcess {
         url: vgaBios,
       },
       fda: {
-        url: iso
+        url: iso,
       },
       autostart: true,
     });
