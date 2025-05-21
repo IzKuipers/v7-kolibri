@@ -9,5 +9,6 @@
   },
   "outFile": "IzK_KolibriOS.arc",
   "payloadDir": "src",
-  "devPort": 3128
+  "devPort": 3128,
+  "buildHash": "01bb2f29"
 }
