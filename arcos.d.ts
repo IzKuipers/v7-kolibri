@@ -123,6 +123,13 @@ declare global {
 
   export type SystemDispatchResult = "success" | "err_systemOnly" | "err_unknownCaller";
 
+  export interface GlobalDispatchClient {
+      socketId: string;
+      userId: string;
+      authorized: boolean;
+      ip?: string;
+  }
+
   export const SystemOnlyDispatches: string[];
 
   export const KnownSystemDispatchers: string[];
@@ -142,7 +149,7 @@ declare global {
 
   export function dirname(path: string): string;
 
-  export function getDirectoryName(path: string): string;
+  export function getItemNameFromPath(path: string): string;
 
   export function getDriveLetter(path: string, allowUuid?: boolean): string | undefined;
 
@@ -210,7 +217,7 @@ declare global {
 
   export function tryParseInt(input: any, returnsUndefined?: boolean): any;
 
-  export function sortByKey(array: any[], key: string): any[];
+  export function sortByKey(array: any[], key: string, reverse?: boolean): any[];
 
   export function sortByHierarchy(array: any[], hierarchy: string): any[];
 
@@ -254,6 +261,7 @@ declare global {
       process?: ThirdPartyAppProcess;
       tpaRevision?: number;
       noSafeMode?: boolean;
+      vital?: boolean;
   }
 
   export type RegisteredProcess = {
@@ -262,6 +270,7 @@ declare global {
       assets: {
           runtime: typeof Process;
       };
+      vital?: boolean;
   };
 
   export interface InstalledApp extends App {
@@ -364,7 +373,7 @@ declare global {
   export interface ArcShortcut {
       icon: string;
       name: string;
-      type: "folder" | "file" | "app";
+      type: "folder" | "file" | "app" | "new";
       target: string;
   }
 
@@ -778,6 +787,13 @@ declare global {
       className?: string;
   }
 
+  export interface VirtualFileManagerLocation {
+      name: string;
+      icon: string;
+      component: Component;
+      hidden?: boolean;
+  }
+
   export class BaseService extends Process {
       host: ServiceHost;
       activated: boolean;
@@ -923,6 +939,8 @@ declare global {
 
   export type DevEnvActivationResult = "success" | "ping_failed" | "port_mismatch" | "build_mismatch" | "already_connected" | "websock_failed" | "drivemnt_failed";
 
+  export const DevEnvActivationResultCaptions: Record<DevEnvActivationResult, string>;
+
   export function toForm(object: Record<string, any>): FormData;
 
   export class DevDrive extends FilesystemDrive {
@@ -933,6 +951,7 @@ declare global {
       FILESYSTEM_LONG: string;
       private axios;
       private url;
+      label: string;
       constructor(kernel: WaveKernel, uuid: string, letter: string, axios: AxiosInstance, url: string);
       readDir(path: string): Promise<DirectoryReadReturn | undefined>;
       createDirectory(path: string): Promise<boolean>;
@@ -1328,6 +1347,7 @@ declare global {
       compactContext: boolean;
       showHiddenApps: boolean;
       noGlass: boolean;
+      userFont?: string;
   }
 
   export interface SecurityPreferences {
@@ -1369,6 +1389,7 @@ declare global {
       profilePicture: string;
       accountNumber: number;
       admin: boolean;
+      dispatchClients: number;
   }
 
   export class AdminBootstrapper extends BaseService {
@@ -1500,6 +1521,7 @@ declare global {
 
   export class GlobalDispatch extends BaseService {
       client: Socket | undefined;
+      token?: string;
       authorized: boolean;
       constructor(handler: ProcessHandler, pid: number, parentPid: number, name: string, host: ServiceHost);
       activate(token: string): Promise<void>;
@@ -1507,6 +1529,8 @@ declare global {
       subscribe<T extends Array<any> = any[]>(event: string, callback: (...data: T) => void): void;
       emit(event: string, ...data: any[]): void;
       stop(): Promise<void>;
+      getClients(): Promise<GlobalDispatchClient[]>;
+      disconnectClient(clientId: string): Promise<boolean>;
   }
 
   export const globalDispatchService: Service;
@@ -1596,6 +1620,7 @@ declare global {
           process?: ThirdPartyAppProcess;
           tpaRevision?: number;
           noSafeMode?: boolean;
+          vital?: boolean;
       }[];
       refresh(): Promise<void>;
       get(): Promise<any[]>;
@@ -2008,7 +2033,9 @@ declare global {
       showNotice: ReadableStore<boolean>;
       loadSave: LoadSaveDialogData | undefined;
       saveName: ReadableStore<string>;
+      virtual: ReadableStore<VirtualFileManagerLocation | undefined>;
       directoryListing: ReadableStore<HTMLDivElement>;
+      virtualLocations: Record<string, VirtualFileManagerLocation>;
       private _refreshLocked;
       constructor(handler: ProcessHandler, pid: number, parentPid: number, app: AppProcessData, path?: string, loadSave?: LoadSaveDialogData);
       contextMenu: AppContextMenu;
@@ -2162,6 +2189,14 @@ declare global {
       className?: string;
   }
 
+  export interface QuickSetting {
+      isActive: (process: ShellRuntime) => boolean | Promise<boolean>;
+      action: (process: ShellRuntime) => any;
+      icon: string;
+      className?: string;
+      caption: string;
+  }
+
   export type TrayIconDiscriminator = `${number}#${string}`;
 
   export class TrayIconProcess extends Process {
@@ -2278,6 +2313,8 @@ declare global {
   export const UrlProfilePicture: App;
 
   export const UrlWallpaper: App;
+
+  export const UserFontApp: App;
 
   export interface SettingsPage {
       name: string;
@@ -3974,6 +4011,7 @@ declare global {
       runApp: (process: typeof ThirdPartyAppProcess, metadataPath: string, parentPid?: number, ...args: any[]) => Promise<ThirdPartyAppProcess | undefined>;
       runAppDirect: (process: typeof ThirdPartyAppProcess, metadataPath: string, parentPid?: number, ...args: any[]) => Promise<ThirdPartyAppProcess | undefined>;
       loadHtml: (path: string) => Promise<string>;
+      loadDirect: (path: string) => Promise<void>;
   };
 
   export type AxiosHeaderValue = AxiosHeaders | string | string[] | number | boolean | null;
@@ -4576,7 +4614,7 @@ declare global {
           sha256: typeof sha256;
           CountInstances: typeof CountInstances;
           join: typeof join;
-          getDirectoryName: typeof getDirectoryName;
+          getItemNameFromPath: typeof getItemNameFromPath;
           getParentDirectory: typeof getParentDirectory;
           getDriveLetter: typeof getDriveLetter;
           formatBytes: typeof formatBytes;
@@ -4599,11 +4637,24 @@ declare global {
       $METADATA: string;
       load: (path: string) => Promise<any>;
       runApp: (process: typeof ThirdPartyAppProcess, metadataPath: string, parentPid?: number, ...args: any[]) => Promise<ThirdPartyAppProcess | undefined>;
+      runAppDirect: (process: typeof ThirdPartyAppProcess, metadataPath: string, parentPid?: number, ...args: any[]) => Promise<ThirdPartyAppProcess | undefined>;
       loadHtml: (path: string) => Promise<string | undefined>;
+      loadDirect: (path: string) => Promise<string | undefined>;
       Server: AxiosInstance;
       Debug: (m: any) => void;
       dayjs: (s: string) => dayjs.Dayjs;
       [key: string]: any;
+  }
+
+  export function contextProps(node: HTMLElement, args: any[]): void;
+
+  export class CustomTitlebar {
+      #private;
+      constructor(process: AppProcess, className?: string);
+      render(target: HTMLElement): void;
+      dispose(): void;
+      getTarget(): HTMLElement | undefined;
+      getTitlebar(): HTMLDivElement | undefined;
   }
 
   export function ThirdPartyProps(daemon: UserDaemon, args: any[], app: App, wrap: (c: string) => string, metaPath: string, workingDirectory?: string): ThirdPartyPropMap;
@@ -4637,6 +4688,7 @@ declare global {
       server: ServerManager;
       syncLock: boolean;
       autoLoadComplete: boolean;
+      globalDispatch?: GlobalDispatch;
       constructor(handler: ProcessHandler, pid: number, parentPid: number, token: string, username: string, userInfo?: UserInfo);
       startApplicationStorage(): Promise<void>;
       getUserInfo(): Promise<UserInfo | undefined>;
@@ -4681,6 +4733,7 @@ declare global {
       spawnThirdParty<T>(app: App, metaPath: string, ...args: any[]): Promise<T | undefined>;
       spawnAutoload(): Promise<void>;
       checkDisabled(appId: string, noSafeMode?: boolean): boolean;
+      isVital(app: App): boolean | undefined;
       disableApp(appId: string): Promise<false | undefined>;
       enableApp(appId: string): Promise<false | undefined>;
       getLoginActivity(): Promise<LoginActivity[]>;
@@ -4833,6 +4886,12 @@ declare global {
       Music: string;
   };
 
+  export const UserPathCaptions: Record<string, string>;
+
+  export const UserPathIcons: Record<string, string>;
+
+  export const UserFonts: string[];
+
   export function isPopulatable(app: App): boolean;
 
   export function RegisteredProcess(process: RegisteredProcess): App;
@@ -4851,6 +4910,8 @@ declare global {
   export const weatherMetadata: Record<number, WeatherMeta>;
 
   export const weatherClasses: Record<number, string>;
+
+  export const QuickSettings: QuickSetting[];
 
   export class ShellRuntime extends AppProcess {
       startMenuOpened: ReadableStore<boolean>;
@@ -4950,8 +5011,6 @@ declare global {
       notImplemented(what?: string): void;
       appStore(): ApplicationStorage;
   }
-
-  export function contextProps(node: HTMLElement, args: any[]): void;
 
   export class AppRenderer extends Process {
       currentState: number[];
@@ -5602,7 +5661,7 @@ declare global {
       sha256: typeof sha256;
       CountInstances: typeof CountInstances;
       join: typeof join;
-      getDirectoryName: typeof getDirectoryName;
+      getItemNameFromPath: typeof getItemNameFromPath;
       getParentDirectory: typeof getParentDirectory;
       getDriveLetter: typeof getDriveLetter;
       formatBytes: typeof formatBytes;
@@ -5634,7 +5693,11 @@ declare global {
 
   export const runApp: (process: typeof ThirdPartyAppProcess, metadataPath: string, parentPid?: number, ...args: any[]) => Promise<ThirdPartyAppProcess | undefined>;
 
+  export const runAppDirect: (process: typeof ThirdPartyAppProcess, metadataPath: string, parentPid?: number, ...args: any[]) => Promise<ThirdPartyAppProcess | undefined>;
+
   export const loadHtml: (path: string) => Promise<string | undefined>;
+
+  export const loadDirect: (path: string) => Promise<string | undefined>;
 
   export const Server: AxiosInstance;
 

@@ -2,10 +2,8 @@ const html = await loadHtml("body.html");
 await load("js/v86.js");
 
 class proc extends ThirdPartyAppProcess {
-  constructor(handler, pid, parentPid, app, workingDirectory, ...args) {
+  constructor(handler, pid, parentPid, app, workingDirectory) {
     super(handler, pid, parentPid, app, workingDirectory);
-
-    this.env.set("shell_pid", this.pid);
   }
 
   async render() {
