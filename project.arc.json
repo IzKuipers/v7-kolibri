@@ -3,7 +3,7 @@
     "name": "KolibriOS",
     "description": "KolibriOS in ArcOS",
     "author": "izk",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "installLocation": "U:/Applications/KolibriOS",
     "appId": "IzK_KolibriOS",
     "store": {

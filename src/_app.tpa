@@ -1,9 +1,10 @@
 {
   "metadata": {
     "name": "KolibriOS",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "author": "izk",
-    "icon": "@local:icon.png"
+    "icon": "@local:icon.png",
+    "appGroup": "entertainment"
   },
   "position": {
     "centered": true,
